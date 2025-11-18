@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel跨表格索引公式生成器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .form-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .form-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-section h2 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result-container h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .formula-box {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .instructions {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .examples {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .form-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Excel跨表格索引公式生成器</h1>
+            <p class="description">输入参考表信息，自动生成INDEX-MATCH公式，用于跨表格索引数据。</p>
+        </header>
+        
+        <div class="form-container">
+            <div class="form-section">
+                <h2><i>📊</i> 参考表设置</h2>
+                <div class="form-group">
+                    <label for="refSheetName">参考表名称</label>
+                    <input type="text" id="refSheetName" placeholder="例如：树种分类基础表" value="树种分类基础表">
+                </div>
+                <div class="form-group">
+                    <label for="refMatchCol">参考表中用于匹配的列</label>
+                    <input type="text" id="refMatchCol" placeholder="例如：F" value="F">
+                </div>
+                <div class="form-group">
+                    <label for="targetCols">要索引的列（用逗号分隔）</label>
+                    <input type="text" id="targetCols" placeholder="例如：A,B,M" value="A,B,M">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2><i>📈</i> 当前表设置</h2>
+                <div class="form-group">
+                    <label for="currentMatchCol">当前表中用于匹配的列</label>
+                    <input type="text" id="currentMatchCol" placeholder="例如：F" value="F">
+                </div>
+                <div class="form-group">
+                    <label for="resultCols">结果列（用逗号分隔，与目标列对应）</label>
+                    <input type="text" id="resultCols" placeholder="例如：C,D,E" value="C,D,E">
+                </div>
+                <div class="form-group">
+                    <label for="startRow">数据起始行号</label>
+                    <input type="number" id="startRow" min="2" value="2">
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn" id="generateBtn">生成公式</button>
+        
+        <div class="result-container" id="resultContainer">
+            <h2>生成的公式</h2>
+            <div class="formula-box" id="formulaOutput"></div>
+            
+            <div class="instructions">
+                <h3>使用说明</h3>
+                <ol>
+                    <li>将生成的公式复制到Excel中对应的单元格</li>
+                    <li>将公式中的行号（如2）替换为实际的行号</li>
+                    <li>拖动填充柄将公式应用到所有相关单元格</li>
+                    <li>如果出现#N/A错误，检查两个表中的匹配值是否完全一致</li>
+                </ol>
+            </div>
+            
+            <div class="examples">
+                <p><strong>示例：</strong> 如果参考表名为"树种分类基础表"，参考匹配列为F列，要索引A、B、M列，当前表匹配列为F列，结果列为C、D、E列，起始行号为2，则生成的公式为：</p>
+                <p>=INDEX(树种分类基础表!A:A, MATCH(F2, 树种分类基础表!F:F, 0))</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            // 获取输入值
+            const refSheetName = document.getElementById('refSheetName').value.trim();
+            const refMatchCol = document.getElementById('refMatchCol').value.trim().toUpperCase();
+            const targetCols = document.getElementById('targetCols').value.trim().toUpperCase().split(',').map(col => col.trim());
+            const currentMatchCol = document.getElementById('currentMatchCol').value.trim().toUpperCase();
+            const resultCols = document.getElementById('resultCols').value.trim().toUpperCase().split(',').map(col => col.trim());
+            const startRow = document.getElementById('startRow').value;
+            
+            // 验证输入
+            if (!refSheetName || !refMatchCol || targetCols.length === 0 || 
+                !currentMatchCol || resultCols.length === 0 || !startRow) {
+                alert('请填写所有必填字段！');
+                return;
+            }
+            
+            if (targetCols.length !== resultCols.length) {
+                alert('目标列和结果列的数量必须相同！');
+                return;
+            }
+            
+            // 生成公式
+            let formulas = '';
+            for (let i = 0; i < targetCols.length; i++) {
+                const formula = `=INDEX(${refSheetName}!${targetCols[i]}:${targetCols[i]}, MATCH(${currentMatchCol}${startRow}, ${refSheetName}!${refMatchCol}:${refMatchCol}, 0))`;
+                formulas += `在${resultCols[i]}${startRow}单元格输入：\n${formula}\n\n`;
+            }
+            
+            // 显示结果
+            document.getElementById('formulaOutput').textContent = formulas;
+            document.getElementById('resultContainer').style.display = 'block';
+            
+            // 滚动到结果区域
+            document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
